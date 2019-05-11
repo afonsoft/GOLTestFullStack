@@ -1,18 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using GOLTestFullStack.Api.Context;
+using GOLTestFullStack.Api.DependencyInjection;
 using GOLTestFullStack.Api.Model;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace GOLTestFullStack.Api
@@ -29,10 +25,23 @@ namespace GOLTestFullStack.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<GolContext>(options => options.UseInMemoryDatabase("InMemoryDataBase"));
+
             services.AddMemoryCache();
             services.ConfigureCors();
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            RegisterServices(services);
+
+            services.AddMvc()
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
+                .AddJsonOptions(
+                options =>
+                {
+                    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                }
+            );
+
+            
 
             services.AddSwaggerGen(c =>
             {
@@ -83,9 +92,15 @@ namespace GOLTestFullStack.Api
 
             app.UseHttpsRedirection();
             app.UseMvc();
-
+            app.UseCookiePolicy();
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "v1"));
+        }
+
+        private static void RegisterServices(IServiceCollection services)
+        {
+            services.AddSingleton(typeof(CacheSegments));
+            NativeInjector.RegisterServices(services);
         }
     }
 }
