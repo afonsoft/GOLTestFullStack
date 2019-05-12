@@ -60,7 +60,7 @@ namespace GOLTestFullStack.Api.Controllers
         // DELETE api/values/5
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status202Accepted)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult Delete(int id)
         {
             try
@@ -70,7 +70,7 @@ namespace GOLTestFullStack.Api.Controllers
             }
             catch (Exception ex)
             {
-                return Conflict(ex.Message);
+                return NotFound(ex.Message);
             }
         }
     }

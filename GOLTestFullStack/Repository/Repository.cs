@@ -75,6 +75,8 @@ namespace GOLTestFullStack.Api.Repository
         public virtual async void DeleteById(long id)
         {
             var entity = GetById(id);
+            if (entity == null)
+                throw new KeyNotFoundException($"Id: {id} not found");
             DbSet.Remove(entity);
             await Context.SaveChangesAsync();
         }
@@ -90,13 +92,9 @@ namespace GOLTestFullStack.Api.Repository
             int quantity = 10
         ) => DbSet.Where(filter).Skip((page - 1) * quantity).Take(quantity);
 
-        public virtual IQueryable<TEntity> Find(Expression<Func<TEntity, bool>> filter = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null)
+        public virtual IQueryable<TEntity> Get(Expression<Func<TEntity, bool>> filter, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null)
         {
-            IQueryable<TEntity> query = DbSet;
-
-            if (filter != null)
-                query = query.Where(filter);
-
+            IQueryable<TEntity> query = DbSet.Where(filter);
             return orderBy != null ? orderBy(query) : query;
         }
 
@@ -132,13 +130,14 @@ namespace GOLTestFullStack.Api.Repository
         public virtual async void UpdateById(TEntity entity, long id)
         {
             TEntity attachedEntity = GetById(id);  // access the key 
-            if (attachedEntity != null)
-            {
-                var attachedEntry = Context.Entry(attachedEntity);
+            if (attachedEntity == null)
+                    throw new KeyNotFoundException($"Id: {id} not found");
+
+            var attachedEntry = Context.Entry(attachedEntity);
                 attachedEntry.CurrentValues.SetValues(entity);
                 attachedEntry.State = EntityState.Modified;
                 await Context.SaveChangesAsync();
-            }
+            
         }
 
         public void Dispose()

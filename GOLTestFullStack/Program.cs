@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using GOLTestFullStack.Api.Context;
-using GOLTestFullStack.Api.Entity;
-using GOLTestFullStack.Api.Repository;
-using Microsoft.AspNetCore;
+﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 
 namespace GOLTestFullStack.Api
@@ -12,10 +7,7 @@ namespace GOLTestFullStack.Api
     {
         public static void Main(string[] args)
         {
-            var host = CreateWebHostBuilder(args).Build();
-
-         
-            host.Run();
+             CreateWebHostBuilder(args).Build().Run();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
