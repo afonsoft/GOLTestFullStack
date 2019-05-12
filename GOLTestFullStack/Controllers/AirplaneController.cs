@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Collections.Generic;
 using GOLTestFullStack.Api.Entity;
 using GOLTestFullStack.Api.Iinterface;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GOLTestFullStack.Api.Controllers
@@ -15,10 +16,12 @@ namespace GOLTestFullStack.Api.Controllers
         public AirplaneController(IAirplaneRepository airplane)
         {
             _airplane = airplane;
+            _airplane.EnsureCreated();
         }
 
         // GET api/values
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<Airplane>), StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<Airplane>> Get()
         {
             return Ok(_airplane.Get());
@@ -26,6 +29,8 @@ namespace GOLTestFullStack.Api.Controllers
 
         // GET api/values/5
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(Airplane), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<Airplane> Get(int id)
         {
             var airplane = _airplane.GetById(id);
@@ -33,25 +38,40 @@ namespace GOLTestFullStack.Api.Controllers
                 return NotFound();
             return Ok(airplane);
         }
-        [HttpGet("{modelo}")]
-        public ActionResult<IEnumerable<Airplane>> Get(string modelo)
-        {
-            return _airplane.Find(x => x.Modelo == modelo).ToList();
-        }
 
         // POST api/values
         [HttpPost]
-        public void Post([FromBody] Airplane airplane)
+        [ProducesResponseType(StatusCodes.Status202Accepted)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public ActionResult Post([FromBody] Airplane airplane)
         {
-            _airplane.Add(airplane);
+            try
+            {
+                _airplane.Add(airplane);
+                return Accepted();
+            }
+            catch(Exception ex)
+            {
+                return Conflict(ex.Message);
+            }
         }
 
 
         // DELETE api/values/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        [ProducesResponseType(StatusCodes.Status202Accepted)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public ActionResult Delete(int id)
         {
-            _airplane.DeleteById(id);
+            try
+            {
+                _airplane.DeleteById(id);
+                return Accepted();
+            }
+            catch (Exception ex)
+            {
+                return Conflict(ex.Message);
+            }
         }
     }
 }

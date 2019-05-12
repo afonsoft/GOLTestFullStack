@@ -21,7 +21,7 @@ namespace GOLTestFullStack.Api.Repository
         /// <summary>
         /// Primary Key Name
         /// </summary>
-        public string PrimaryKeyName { get; private set; }
+        public string PrimaryKeyName { get; }
 
         internal IEntityType _entityType;
         internal IEnumerable<IProperty> _properties;
@@ -46,13 +46,23 @@ namespace GOLTestFullStack.Api.Repository
         /// Add Element
         /// </summary>
         /// <param name="entity"></param>
-        public async void Add(TEntity entity)
+        public virtual async void Add(TEntity entity)
         {
             await DbSet.AddAsync(entity);
             await Context.SaveChangesAsync();
         }
 
-        public async void Delete(TEntity entity)
+        /// <summary>
+        /// Add Many Element
+        /// </summary>
+        /// <param name="entity"></param>
+        public virtual async void AddRange(IEnumerable<TEntity> entity)
+        {
+            await DbSet.AddRangeAsync(entity);
+            await Context.SaveChangesAsync();
+        }
+
+        public virtual async void Delete(TEntity entity)
         {
             if (Context.Entry(entity).State == EntityState.Detached)
             {
@@ -62,14 +72,25 @@ namespace GOLTestFullStack.Api.Repository
             await Context.SaveChangesAsync();
         }
 
-        public async void DeleteById(long id)
+        public virtual async void DeleteById(long id)
         {
             var entity = GetById(id);
             DbSet.Remove(entity);
             await Context.SaveChangesAsync();
         }
 
-        public IQueryable<TEntity> Find(Expression<Func<TEntity, bool>> filter = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null)
+        public virtual IQueryable<TEntity> GetPagination(Expression<Func<TEntity, bool>> filter,
+            int page = 1,
+            int quantity = 10) =>
+            DbSet.Where(filter).Skip((page - 1) * quantity).Take(quantity);
+
+        public virtual IQueryable<TEntity> GetPagination(Expression<Func<TEntity, bool>> filter,
+            Expression<Func<TEntity, object>> orderBy,
+            int page = 1,
+            int quantity = 10
+        ) => DbSet.Where(filter).Skip((page - 1) * quantity).Take(quantity);
+
+        public virtual IQueryable<TEntity> Find(Expression<Func<TEntity, bool>> filter = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null)
         {
             IQueryable<TEntity> query = DbSet;
 
@@ -79,17 +100,12 @@ namespace GOLTestFullStack.Api.Repository
             return orderBy != null ? orderBy(query) : query;
         }
 
-        public IQueryable<TEntity> Get()
-        {
-            return DbSet.AsNoTracking();
-        }
+        public virtual IQueryable<TEntity> Get() => DbSet.AsNoTracking();
+       
 
-        public TEntity GetById(long id)
-        {
-            return (DbSet.FirstOrDefault(e => (long)e.GetType().GetProperty(PrimaryKeyName).GetValue(e) == id));
-        }
-
-        public async void Update(TEntity entity)
+        public virtual TEntity GetById(long id) => (DbSet.FirstOrDefault(e => (long)e.GetType().GetProperty(PrimaryKeyName).GetValue(e) == id));
+        
+        public virtual async void Update(TEntity entity)
         {
             //pegar o valor da pk do objeto
             var entry = Context.Entry(entity);
@@ -113,7 +129,7 @@ namespace GOLTestFullStack.Api.Repository
             await Context.SaveChangesAsync();
         }
 
-        public async void UpdateById(TEntity entity, long id)
+        public virtual async void UpdateById(TEntity entity, long id)
         {
             TEntity attachedEntity = GetById(id);  // access the key 
             if (attachedEntity != null)

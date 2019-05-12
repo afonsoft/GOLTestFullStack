@@ -31,7 +31,8 @@ namespace GOLTestFullStack.Api.Context
                 .Property(q => q.QtsPassageiros);
 
             builder
-                .Property(q => q.DateCreate);
+                .Property(q => q.DateCreate)
+                .IsRequired();
 
         }
     }

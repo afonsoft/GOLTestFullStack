@@ -41,8 +41,6 @@ namespace GOLTestFullStack.Api
                 }
             );
 
-            
-
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1",

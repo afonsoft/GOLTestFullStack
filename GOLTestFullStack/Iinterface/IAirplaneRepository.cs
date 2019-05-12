@@ -8,6 +8,6 @@ namespace GOLTestFullStack.Api.Iinterface
 {
     public interface IAirplaneRepository : IRepository<Airplane>
     {
-
+        void EnsureCreated();
     }
 }
